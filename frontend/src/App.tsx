@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Chat from './Chat'
 import './App.css'
 
 type HealthResponse = {
@@ -7,7 +8,7 @@ type HealthResponse = {
   timestamp: string
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null)
@@ -38,6 +39,8 @@ function App() {
           <li>Horodatage : {health.timestamp}</li>
         </ul>
       )}
+
+      <Chat />
     </main>
   )
 }

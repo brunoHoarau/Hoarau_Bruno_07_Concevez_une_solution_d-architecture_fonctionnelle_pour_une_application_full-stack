@@ -5,6 +5,7 @@
 # Backend (Maven)
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
+backend/.env
 
 # Frontend (Node/Vite)
 frontend/node_modules/
@@ -12,6 +13,10 @@ frontend/dist/
 frontend/dist-ssr/
 frontend/.env
 frontend/*.local
+
+# Runtime artifacts from local dev servers
+*.log
+*.pid
 
 # Editors / OS
 .vscode/
