@@ -1,0 +1,20 @@
+# Documents (livrables Word/PDF, non versionnés dans ce dépôt de code)
+*.docx
+*.pdf
+
+# Backend (Maven)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend (Node/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.env
+frontend/*.local
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
