@@ -3,18 +3,26 @@
 Projet réalisé dans le cadre du parcours OpenClassrooms *Architecte Logiciel* (P7).
 Ce dépôt contient le **POC (preuve de concept)** validant la faisabilité de l'architecture cible retenue pour la nouvelle application Your Car Your Way, à travers une seule fonctionnalité : un **tchat en temps réel entre un client et une agence**.
 
-## Documents du projet
+## Contexte et livrables
 
-Les livrables d'analyse et de conception (hors code) sont à la racine de ce dossier :
+Les livrables d'analyse et de conception sont remis séparément sur la plateforme OpenClassrooms et **ne sont pas versionnés dans ce dépôt** :
 
-| Document | Contenu |
+| Livrable | Contenu |
 |---|---|
-| `YourCarYourWay_CDCV1.pdf` | Cahier des charges initial (fourni) |
-| `YourCarYourWay_CDC_v2.0_*.docx` | Cahier des charges consolidé : exigences fonctionnelles et non fonctionnelles |
-| `YourCarYourWay_UserStories_v1.1_*.docx` | Backlog de user stories et critères d'acceptation |
-| `DescriptionTechniqueExistant.pdf` | Description technique des applications existantes (fourni) |
-| `YourCarYourWay_AuditTechnique_v1.0_*.docx` | Audit technique de l'existant (forces / faiblesses / contraintes) |
-| `YourCarYourWay_PropositionArchitecture_v1.0_*.docx` | Proposition d'architecture cible (diagrammes composants/déploiement/classes, choix technologiques) |
+| Cahier des charges v2.1 | Exigences fonctionnelles et non fonctionnelles consolidées (26 EF, priorisées MoSCoW) |
+| Backlog v1.2 | 35 user stories avec critères d'acceptation (Gherkin), dont accessibilité (PSH), sécurité et internationalisation |
+| Audit technique v1.0 | Forces, faiblesses et contraintes des quatre applications existantes |
+| Proposition d'architecture v1.2 | Architecture cible, diagrammes (composants, déploiement, séquence, classes) et choix technologiques argumentés |
+
+L'architecture cible, en résumé :
+
+- **Style** : orienté services + événementiel — cinq services Spring Boot (Utilisateur, Catalogue, Réservation, Paiement, Notification), une base PostgreSQL par service, exposés derrière une API Gateway unique (Azure API Management) commune au client et aux agences.
+- **Communication** : REST pour les appels synchrones, Azure Service Bus pour les événements.
+- **Réservation ↔ paiement** : saga orchestrée par événements — réservation temporaire `EN_ATTENTE_PAIEMENT`, paiement délégué à Stripe (webhook signé, traitement idempotent), confirmation ou expiration après 15 min, remboursement automatique de tout paiement réalisé pour une réservation non confirmable.
+- **Identité** : Microsoft Entra External ID pour les clients (remplace Azure AD B2C, plus commercialisé depuis le 1er mai 2025), Microsoft Entra ID de l'entreprise pour les applications agence.
+- **Hébergement** : Azure (Front Door, AKS multi-zone, services managés).
+
+Ce POC valide la brique la plus risquée techniquement : la **communication temps réel** entre le client et l'agence.
 
 ## Architecture du POC
 
@@ -27,12 +35,12 @@ Les livrables d'analyse et de conception (hors code) sont à la racine de ce dos
 P7/
 ├── backend/    Spring Boot — API REST (/api/health) + WebSocket/STOMP (/ws, /app/chat.send, /topic/chat)
 ├── frontend/   React — statut backend + composant de tchat (src/Chat.tsx)
-└── *.docx/.pdf Livrables documentaires (non versionnés dans git, voir .gitignore)
+└── docs/       Livrables documentaires, en local uniquement (non versionné, voir .gitignore)
 ```
 
 ## Prérequis
 
-- **Node.js** 18+ et npm (pour le frontend).
+- **Node.js** 20.19+ ou 22.12+ et npm (pour le frontend — version minimale exigée par Vite 8).
 - **JDK 21** (pour le backend — Spring Boot 4 exige Java 17 minimum).
   > Si votre machine n'a qu'un JDK plus ancien installé par défaut (`java -version`), installez un JDK 21 (ex. [Eclipse Temurin](https://adoptium.net/)) et pointez `JAVA_HOME` dessus le temps de lancer le backend (voir ci-dessous).
 
@@ -100,9 +108,10 @@ Ouvrir l'URL affichée (normalement `http://localhost:5173`).
 cd backend
 .\mvnw.cmd test
 
-# Frontend : typecheck + build de production
+# Frontend : typecheck + build de production, puis analyse statique
 cd frontend
 npm run build
+npm run lint
 ```
 
 ## Notes techniques
